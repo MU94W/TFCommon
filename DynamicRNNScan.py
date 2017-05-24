@@ -56,6 +56,7 @@ def biDynamicRNNScan(cell_fw, cell_bw, inputs, time_major=True, mode='concat', s
 
         with tf.variable_scope('backward'):
             final_output_bw, state_bw = dynamicRNNScan(cell_bw, inputs_bw)
+            final_output_bw = tf.reverse(final_output_bw, axis=[0])
 
         if mode == 'concat':
             final_output = tf.concat([final_output_fw, final_output_bw], axis=-1)
