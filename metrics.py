@@ -15,7 +15,7 @@ def sparse_categorical_accuracy(y_true, y_pred):
 
 def binary_accuracy(y_true, y_pred, mask=1):
     round_y_pred = tf.round(y_pred)
-    right_cnt = tf.equal(re_y_true, re_y_pred)
+    right_cnt = tf.cast(tf.equal(y_true, y_pred), tf.int32)
     return compute_weighted_loss(right_cnt, mask)
 
 def perplexity(label, logit):
