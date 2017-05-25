@@ -1,5 +1,8 @@
 import tensorflow as tf
+from tensorflow.python.ops import losses
 import math
+
+compute_weighted_loss = losses.losses_impl.compute_weighted_loss
 
 def sparse_categorical_accuracy(y_true, y_pred):
     _, max_ind = tf.nn.top_k(y_pred)
@@ -10,13 +13,13 @@ def sparse_categorical_accuracy(y_true, y_pred):
     size = tf.size(y_true)
     return tf.divide(score, size)
 
-def binary_accuracy(y_true, y_pred):
+def binary_accuracy(y_true, y_pred, mask=1):
     round_y_pred = tf.round(y_pred)
     dots = tf.size(y_true)
     re_y_true = tf.reshape(y_true, shape=(dots,))
     re_y_pred = tf.reshape(round_y_pred, shape=(dots,))
-    right_cnt = tf.reduce_sum(tf.cast(tf.equal(re_y_true, re_y_pred), tf.int32))
-    return tf.divide(right_cnt, dots)
+    right_cnt = tf.equal(re_y_true, re_y_pred)
+    return compute_weighted_loss(right_cnt, mask)
 
 def perplexity(label, logit):
     words = tf.cast(tf.size(label), tf.float32)
