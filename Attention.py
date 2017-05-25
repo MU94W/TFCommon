@@ -9,7 +9,7 @@ class BahdanauAttentionModule(object):
         memory:             A tensor, whose shape should be (None, Time, Unit)
         time_major:
     """
-    def __init__(self, attention_units, memory, time_major=True):
+    def __init__(self, attention_units, memory, time_major=True, mode=0):
         self.attention_units    = attention_units
         self.enc_units          = memory.get_shape()[-1].value
 
@@ -18,12 +18,13 @@ class BahdanauAttentionModule(object):
 
         self.enc_length = tf.shape(memory)[1]
         self.batch_size = tf.shape(memory)[0]
+        self.mode = mode
 
         self.memory = tf.reshape(memory, (tf.shape(memory)[0], self.enc_length, 1, self.enc_units))
         ### pre-compute Uahj to minimize the computational cost
         with tf.variable_scope('attention'):
             Ua = tf.get_variable(name='Ua', shape=(1, 1, self.enc_units, self.attention_units),
-                                 initializer=gaussian_initializer(mean=0.0, std=0.001))
+                                 initializer=gaussian_initializer(mean=0.0, std=0.001) if self.mode == 0 else None)
         self.hidden_feats = tf.nn.conv2d(self.memory, Ua, [1,1,1,1], "SAME")
     
     def __call__(self, query):
@@ -34,11 +35,11 @@ class BahdanauAttentionModule(object):
             query_units = query.get_shape()[-1].value
 
             Wa = tf.get_variable(name='Wa', shape=(query_units, self.attention_units),
-                                 initializer=gaussian_initializer(mean=0.0, std=0.001))
+                                 initializer=gaussian_initializer(mean=0.0, std=0.001) if self.mode == 0 else None)
             Va = tf.get_variable(name='Va', shape=(self.attention_units,),
-                                 initializer=tf.constant_initializer(0.0))
+                                 initializer=tf.constant_initializer(0.0) if self.mode == 0 else None)
             b  = tf.get_variable(name='b',  shape=(self.attention_units,),
-                                 initializer=tf.constant_initializer(0.0))
+                                 initializer=tf.constant_initializer(0.0) if self.mode == 0 else None)
  
             ### 1st. compute query_feat (query's repsentation in attention module)
             query_feat = tf.reshape(tf.matmul(query, Wa), (-1, 1, 1, self.attention_units))
