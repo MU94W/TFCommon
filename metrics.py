@@ -4,14 +4,12 @@ import math
 
 compute_weighted_loss = losses.losses_impl.compute_weighted_loss
 
-def sparse_categorical_accuracy(y_true, y_pred):
+def sparse_categorical_accuracy(y_true, y_pred, mask=1):
     _, max_ind = tf.nn.top_k(y_pred)
     max_ind = tf.cast(tf.squeeze(max_ind), tf.int32)
     y_true = tf.cast(tf.squeeze(y_true), tf.int32)
-    score = tf.cast(tf.equal(y_true, max_ind), tf.int32)
-    score = tf.reduce_sum(score)
-    size = tf.size(y_true)
-    return tf.divide(score, size)
+    score = tf.cast(tf.equal(y_true, max_ind), tf.float32)
+    return compute_weighted_loss(score, mask)
 
 def binary_accuracy(y_true, y_pred, mask=1):
     round_y_pred = tf.round(y_pred)
