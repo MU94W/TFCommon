@@ -1,4 +1,5 @@
 import tensorflow as tf
+from tensorflow.python.ops import array_ops
 from TFCommon.Initializer import gaussian_initializer, random_orthogonal_initializer
 from six.moves import xrange
 
@@ -9,7 +10,7 @@ class BahdanauAttentionModule(object):
         memory:             A tensor, whose shape should be (None, Time, Unit)
         time_major:
     """
-    def __init__(self, attention_units, memory, time_major=True, mode=0):
+    def __init__(self, attention_units, memory, sequence_length=None, time_major=True, mode=0):
         self.attention_units    = attention_units
         self.enc_units          = memory.get_shape()[-1].value
 
@@ -19,6 +20,7 @@ class BahdanauAttentionModule(object):
         self.enc_length = tf.shape(memory)[1]
         self.batch_size = tf.shape(memory)[0]
         self.mode = mode
+        self.mask = array_ops.sequence_mask(sequence_length, self.enc_length, tf.float32) if sequence_length is not None else None
 
         self.memory = tf.reshape(memory, (tf.shape(memory)[0], self.enc_length, 1, self.enc_units))
         ### pre-compute Uahj to minimize the computational cost
@@ -48,7 +50,11 @@ class BahdanauAttentionModule(object):
             e = tf.reduce_sum(Va * tf.nn.tanh(self.hidden_feats + query_feat + b), axis=(2,3))
 
             ### 3rd. compute the score
-            alpha = tf.nn.softmax(e)
+            #alpha = tf.nn.softmax(e)
+            exp_e = tf.exp(e)
+            if self.mask is not None:
+                exp_e = exp_e * self.mask
+            alpha = tf.divide(exp_e, tf.reduce_sum(exp_e, axis=-1, keep_dims=True))
 
             ### 4th. get the weighted context from memory (element-wise mul then reduce)
             context = tf.reshape(alpha, (tf.shape(query)[0], self.enc_length, 1, 1)) * self.memory

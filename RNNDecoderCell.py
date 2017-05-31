@@ -1,6 +1,7 @@
 import tensorflow as tf, numpy as np
 from TFCommon.Initializer import gaussian_initializer, random_orthogonal_initializer
-import TFCommon.nest as nest
+from tensorflow.python.util import nest
+from tensorflow.python.ops.rnn_cell_impl import _RNNCell as RNNCell
 
 def as_shape(shape):
   """Converts the given object to a TensorShape."""
