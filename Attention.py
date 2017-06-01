@@ -50,11 +50,12 @@ class BahdanauAttentionModule(object):
             e = tf.reduce_sum(Va * tf.nn.tanh(self.hidden_feats + query_feat + b), axis=(2,3))
 
             ### 3rd. compute the score
-            #alpha = tf.nn.softmax(e)
-            exp_e = tf.exp(e)
             if self.mask is not None:
+                exp_e = tf.exp(e)
                 exp_e = exp_e * self.mask
-            alpha = tf.divide(exp_e, tf.reduce_sum(exp_e, axis=-1, keep_dims=True))
+                alpha = tf.divide(exp_e, tf.reduce_sum(exp_e, axis=-1, keep_dims=True))
+            else:
+                alpha = tf.nn.softmax(e)
 
             ### 4th. get the weighted context from memory (element-wise mul then reduce)
             context = tf.reshape(alpha, (tf.shape(query)[0], self.enc_length, 1, 1)) * self.memory
