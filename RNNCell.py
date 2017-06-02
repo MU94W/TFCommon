@@ -21,6 +21,9 @@ class GRUCell(RNNCell):
     def output_size(self):
         return self._num_units
 
+    def zero_state(self, batch_size, dtype):
+        return tuple([super(GRUCell, self).zero_state(batch_size, dtype)])
+
     def init_state(self, batch_size, dtype):
         if self._init_state is not None:
             return tuple([self._init_state])
@@ -29,37 +32,39 @@ class GRUCell(RNNCell):
 
     def __call__(self, x, h_prev, scope=None):
         with tf.variable_scope(scope or type(self).__name__):
+
             h_prev = h_prev[0]
+
             # Check if the input size exist.
-            input_size = x.get_shape().with_rank(2)[1]
+            input_size = x.shape.with_rank(2)[1].value
             if input_size is None:
                 raise ValueError("Expecting input_size to be set.")
 
             # Check num_units == state_size from h_prev.
-            num_units = h_prev.get_shape().with_rank(2)[1]
-            if num_units != self._num_units:
-                raise ValueError("Shape of h_prev[1] incorrect: num_units %i vs %s" %
-                                 (self._num_units, num_units))
+            #num_units = h_prev.get_shape().with_rank(2)[1]
+            #if num_units != self._num_units:
+                #raise ValueError("Shape of h_prev[1] incorrect: num_units %i vs %s" %
+                                 #(self._num_units, num_units))
 
-            if num_units is None:
-                raise ValueError("num_units from `h_prev` should not be None.")
+            #if num_units is None:
+                #raise ValueError("num_units from `h_prev` should not be None.")
 
             ### get weights for concated tensor.
-            W_shape = (input_size, self._num_units)
+            W_shape = (input_size, self.state_size)
             Wz = tf.get_variable(name='Wz', shape=W_shape)
             Wr = tf.get_variable(name='Wr', shape=W_shape)
             Wh = tf.get_variable(name='Wh', shape=W_shape)
-            Uz = tf.get_variable(name='Uz', shape=(self._num_units, self._num_units),
+            Uz = tf.get_variable(name='Uz', shape=(self.state_size, self.state_size),
                                  initializer=random_orthogonal_initializer())
-            Ur = tf.get_variable(name='Ur', shape=(self._num_units, self._num_units),
+            Ur = tf.get_variable(name='Ur', shape=(self.state_size, self.state_size),
                                  initializer=random_orthogonal_initializer())
-            Uh = tf.get_variable(name='Uh', shape=(self._num_units, self._num_units),
+            Uh = tf.get_variable(name='Uh', shape=(self.state_size, self.state_size),
                                  initializer=random_orthogonal_initializer())
-            bz = tf.get_variable(name='bz', shape=(self._num_units,),
+            bz = tf.get_variable(name='bz', shape=(self.state_size,),
                                  initializer=tf.constant_initializer(1.0))
-            br = tf.get_variable(name='br', shape=(self._num_units,),
+            br = tf.get_variable(name='br', shape=(self.state_size,),
                                  initializer=tf.constant_initializer(1.0))
-            bh = tf.get_variable(name='bh', shape=(self._num_units,),
+            bh = tf.get_variable(name='bh', shape=(self.state_size,),
                                  initializer=tf.constant_initializer(1.0))
 
             ### calculate r and z
