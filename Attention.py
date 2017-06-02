@@ -25,8 +25,7 @@ class BahdanauAttentionModule(object):
         self.memory = tf.reshape(memory, (tf.shape(memory)[0], self.enc_length, 1, self.enc_units))
         ### pre-compute Uahj to minimize the computational cost
         with tf.variable_scope('attention'):
-            Ua = tf.get_variable(name='Ua', shape=(1, 1, self.enc_units, self.attention_units),
-                                 initializer=gaussian_initializer(mean=0.0, std=0.001) if self.mode == 0 else None)
+            Ua = tf.get_variable(name='Ua', shape=(1, 1, self.enc_units, self.attention_units))
         self.hidden_feats = tf.nn.conv2d(self.memory, Ua, [1,1,1,1], "SAME")
     
     def __call__(self, query):
@@ -36,8 +35,7 @@ class BahdanauAttentionModule(object):
 
             query_units = query.get_shape()[-1].value
 
-            Wa = tf.get_variable(name='Wa', shape=(query_units, self.attention_units),
-                                 initializer=gaussian_initializer(mean=0.0, std=0.001) if self.mode == 0 else None)
+            Wa = tf.get_variable(name='Wa', shape=(query_units, self.attention_units))
             Va = tf.get_variable(name='Va', shape=(self.attention_units,),
                                  initializer=tf.constant_initializer(0.0) if self.mode == 0 else None)
             b  = tf.get_variable(name='b',  shape=(self.attention_units,),

@@ -46,12 +46,9 @@ class GRUCell(RNNCell):
 
             ### get weights for concated tensor.
             W_shape = (input_size, self._num_units)
-            Wz = tf.get_variable(name='Wz', shape=W_shape,
-                                 initializer=gaussian_initializer(mean=0.0, std=0.01))
-            Wr = tf.get_variable(name='Wr', shape=W_shape,
-                                 initializer=gaussian_initializer(mean=0.0, std=0.01))
-            Wh = tf.get_variable(name='Wh', shape=W_shape,
-                                 initializer=gaussian_initializer(mean=0.0, std=0.01))
+            Wz = tf.get_variable(name='Wz', shape=W_shape)
+            Wr = tf.get_variable(name='Wr', shape=W_shape)
+            Wh = tf.get_variable(name='Wh', shape=W_shape)
             Uz = tf.get_variable(name='Uz', shape=(self._num_units, self._num_units),
                                  initializer=random_orthogonal_initializer())
             Ur = tf.get_variable(name='Ur', shape=(self._num_units, self._num_units),
@@ -59,11 +56,11 @@ class GRUCell(RNNCell):
             Uh = tf.get_variable(name='Uh', shape=(self._num_units, self._num_units),
                                  initializer=random_orthogonal_initializer())
             bz = tf.get_variable(name='bz', shape=(self._num_units,),
-                                 initializer=tf.constant_initializer(0.0))
+                                 initializer=tf.constant_initializer(1.0))
             br = tf.get_variable(name='br', shape=(self._num_units,),
-                                 initializer=tf.constant_initializer(0.0))
+                                 initializer=tf.constant_initializer(1.0))
             bh = tf.get_variable(name='bh', shape=(self._num_units,),
-                                 initializer=tf.constant_initializer(0.0))
+                                 initializer=tf.constant_initializer(1.0))
 
             ### calculate r and z
             r = tf.sigmoid(tf.matmul(x, Wr) + tf.matmul(h_prev, Ur) + br)
