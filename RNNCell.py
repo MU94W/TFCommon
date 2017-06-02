@@ -1,6 +1,6 @@
 import tensorflow as tf, numpy as np
 from tensorflow.python.util import nest
-if tf.__version__[:3] == "1.2":
+if float(tf.__version__[:3]) >= 1.2:
     from tensorflow.python.ops.rnn_cell_impl import RNNCell
 else:
     from tensorflow.python.ops.rnn_cell_impl import _RNNCell as RNNCell
