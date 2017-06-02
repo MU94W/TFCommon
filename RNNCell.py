@@ -1,6 +1,9 @@
 import tensorflow as tf, numpy as np
 from tensorflow.python.util import nest
-from tensorflow.python.ops.rnn_cell_impl import _RNNCell as RNNCell
+if tf.__version__[:3] == "1.2":
+    from tensorflow.python.ops.rnn_cell_impl import RNNCell
+else:
+    from tensorflow.python.ops.rnn_cell_impl import _RNNCell as RNNCell
 from tensorflow.contrib.rnn import LSTMStateTuple
 from TFCommon.Initializer import gaussian_initializer, random_orthogonal_initializer
 from six.moves import xrange
@@ -83,7 +86,7 @@ class LSTMCell(RNNCell):
 
     @property
     def state_size(self):
-        return LSTMStateTuple(self.output_size, output_size)
+        return LSTMStateTuple(self.output_size, self.output_size)
 
     @property
     def output_size(self):
@@ -136,7 +139,7 @@ class LSTMCell(RNNCell):
             ### final cal
             new_h = o * tf.tanh(new_c)
 
-            return new_h, tuple([new_h, new_c])
+            return new_h, LSTMStateTuple(new_h, new_c)
 
 
 
