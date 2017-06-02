@@ -83,7 +83,7 @@ class LSTMCell(RNNCell):
 
     @property
     def state_size(self):
-        return LSTMStateTuple(self.output_size, output_size)
+        return LSTMStateTuple(self.output_size, self.output_size)
 
     @property
     def output_size(self):
@@ -136,7 +136,7 @@ class LSTMCell(RNNCell):
             ### final cal
             new_h = o * tf.tanh(new_c)
 
-            return new_h, tuple([new_h, new_c])
+            return new_h, LSTMStateTuple(new_h, new_c)
 
 
 
