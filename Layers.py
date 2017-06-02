@@ -1,10 +1,11 @@
 import tensorflow as tf
+import math
 
 class EmbeddingLayer(object):
     """Embedding Layer
     """
 
-    def __init__(self, classes, size, initializer=None, reuse=None):
+    def __init__(self, classes, size, initializer=None, dtype=tf.float32, reuse=None):
         """
         Args:
             classes[int]: embedding classes.
@@ -15,11 +16,16 @@ class EmbeddingLayer(object):
         self.__classes = classes
         self.__size = size
         self.__initializer = initializer
+        self.__dtype = dtype
         self.__reuse = reuse
 
     @property
     def classes(self):
         return self.__classes
+
+    @property
+    def dtype(self):
+        return self.__dtype
     
     @property
     def size(self):
@@ -35,7 +41,7 @@ class EmbeddingLayer(object):
                 initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
 
             embedding = tf.get_variable(name="embedding", shape=(self.classes, self.size), \
-                    initializer=initializer, dtype=input_ts.dtype)
+                    initializer=initializer, dtype=self.dtype)
             embedded = tf.nn.embedding_lookup(embedding, input_ts)
         return embedded
 

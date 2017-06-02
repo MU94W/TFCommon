@@ -61,11 +61,11 @@ class GRUCell(RNNCell):
             Uh = tf.get_variable(name='Uh', shape=(self.state_size, self.state_size),
                                  initializer=random_orthogonal_initializer())
             bz = tf.get_variable(name='bz', shape=(self.state_size,),
-                                 initializer=tf.constant_initializer(1.0))
+                                 initializer=tf.constant_initializer(0.0))
             br = tf.get_variable(name='br', shape=(self.state_size,),
-                                 initializer=tf.constant_initializer(1.0))
+                                 initializer=tf.constant_initializer(0.0))
             bh = tf.get_variable(name='bh', shape=(self.state_size,),
-                                 initializer=tf.constant_initializer(1.0))
+                                 initializer=tf.constant_initializer(0.0))
 
             ### calculate r and z
             r = tf.sigmoid(tf.matmul(x, Wr) + tf.matmul(h_prev, Ur) + br)
