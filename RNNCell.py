@@ -5,6 +5,7 @@ if float(tf.__version__[:3]) >= 1.2:
 else:
     from tensorflow.python.ops.rnn_cell_impl import _RNNCell as RNNCell
 from tensorflow.contrib.rnn import LSTMStateTuple
+from tensorflow.contrib.keras import activations
 from TFCommon.Initializer import gaussian_initializer, random_orthogonal_initializer
 from six.moves import xrange
 
@@ -12,8 +13,14 @@ from six.moves import xrange
 class GRUCell(RNNCell):
     """Gated Recurrent Unit (GRU) recurrent network cell."""
 
-    def __init__(self, num_units, init_state=None, reuse=None):
+    def __init__(self, num_units, gate_activation="sigmoid", init_state=None, reuse=None):
         self.__num_units = num_units
+        if gate_activation == "sigmoid":
+            self.__gate_activation = tf.sigmoid
+        elif gate_activation == "hard_sigmoid":
+            self.__gate_activation = activations.hard_sigmoid
+        else:
+            raise ValueError
         self.__init_state = init_state
         self.__reuse = reuse
 
@@ -65,8 +72,8 @@ class GRUCell(RNNCell):
                                  initializer=tf.constant_initializer(0.0))
 
             ### calculate r and z
-            r = tf.sigmoid(tf.matmul(x, Wr) + tf.matmul(h_prev, Ur) + br)
-            z = tf.sigmoid(tf.matmul(x, Wz) + tf.matmul(h_prev, Uz) + bz)
+            r = self.__gate_activation(tf.matmul(x, Wr) + tf.matmul(h_prev, Ur) + br)
+            z = self.__gate_activation(tf.matmul(x, Wz) + tf.matmul(h_prev, Uz) + bz)
 
             ### calculate candidate
             h_slash = tf.tanh(tf.matmul(x, Wh) + tf.matmul(r * h_prev, Uh) + bh)
@@ -79,8 +86,14 @@ class GRUCell(RNNCell):
 class LSTMCell(RNNCell):
     """Long Short-Term Memory (LSTM) unit recurrent network cell."""
 
-    def __init__(self, num_units, forget_bias=1.0, reuse=None):
+    def __init__(self, num_units, gate_activation="sigmoid", forget_bias=1.0, reuse=None):
         self.__num_units = num_units
+        if gate_activation == "sigmoid":
+            self.__gate_activation = tf.sigmoid
+        elif gate_activation == "hard_sigmoid":
+            self.__gate_activation = activations.hard_sigmoid
+        else:
+            raise ValueError
         self.__forget_bias = forget_bias
         self.__reuse = reuse
 
@@ -129,8 +142,8 @@ class LSTMCell(RNNCell):
 
             ### calculate gates and input's info
             i = tf.tanh(tf.matmul(x, Wi) + tf.matmul(h_prev, Ui) + bi)
-            j = tf.sigmoid(tf.matmul(x, Wj) + tf.matmul(h_prev, Uj) + bj)
-            f = tf.sigmoid(tf.matmul(x, Wf) + tf.matmul(h_prev, Uf) + bf)
+            j = self.__gate_activation(tf.matmul(x, Wj) + tf.matmul(h_prev, Uj) + bj)
+            f = self.__gate_activation(tf.matmul(x, Wf) + tf.matmul(h_prev, Uf) + bf)
             o = tf.tanh(tf.matmul(x, Wo) + tf.matmul(h_prev, Uo) + bo)
 
             ### calculate candidate
