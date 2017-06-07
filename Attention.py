@@ -37,9 +37,9 @@ class BahdanauAttentionModule(object):
 
             Wa = tf.get_variable(name='Wa', shape=(query_units, self.attention_units))
             Va = tf.get_variable(name='Va', shape=(self.attention_units,),
-                                 initializer=tf.constant_initializer(0.0) if self.mode == 0 else None)
+                                 initializer=tf.constant_initializer(0.0) if self.mode == 0 else tf.constant_initializer(1e-2))
             b  = tf.get_variable(name='b',  shape=(self.attention_units,),
-                                 initializer=tf.constant_initializer(0.0) if self.mode == 0 else None)
+                                 initializer=tf.constant_initializer(0.0) if self.mode == 0 else tf.constant_initializer(0.5))
  
             ### 1st. compute query_feat (query's repsentation in attention module)
             query_feat = tf.reshape(tf.matmul(query, Wa), (-1, 1, 1, self.attention_units))

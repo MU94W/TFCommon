@@ -13,7 +13,7 @@ from six.moves import xrange
 class GRUCell(RNNCell):
     """Gated Recurrent Unit (GRU) recurrent network cell."""
 
-    def __init__(self, num_units, gate_activation="sigmoid", init_state=None, reuse=None):
+    def __init__(self, num_units, init_state=None, gate_activation="sigmoid", reuse=None):
         self.__num_units = num_units
         if gate_activation == "sigmoid":
             self.__gate_activation = tf.sigmoid
@@ -39,7 +39,7 @@ class GRUCell(RNNCell):
         if self.__init_state is not None:
             return tuple([self.__init_state])
         else:
-            return tuple([self.zero_state(batch_size, dtype)])
+            return self.zero_state(batch_size, dtype)
 
     def __call__(self, x, h_prev, scope=None):
         with tf.variable_scope(scope or type(self).__name__):
