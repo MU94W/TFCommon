@@ -158,20 +158,22 @@ class LSTMCell(RNNCell):
 
 class ResidualWrapper(RNNCell):
     def __init__(self, cell, reuse=None):
-        self._cell = cell
-        self._init_state = self._cell._init_state
-        self._reuse = reuse
+        self.__cell = cell
+        self.__reuse = reuse
 
     @property
     def state_size(self):
-        return self._cell.state_size
+        return self.__cell.state_size
 
     @property
     def output_size(self):
-        return self._cell.output_size
+        return self.__cell.output_size
 
     def init_state(self, batch_size, dtype):
-        return self._cell.init_state(batch_size, dtype)
+        return self.__cell.init_state(batch_size, dtype)
+
+    def zero_state(self, batch_size, dtype):
+        return self.__cell.zero_state(batch_size, dtype)
 
     def __call__(self, x, h_prev, scope=None):
         with tf.variable_scope(scope or type(self).__name__):
@@ -180,7 +182,7 @@ class ResidualWrapper(RNNCell):
             if input_unit != self.output_size:
                 raise ValueError("Shape of x (%d) is not equal to output_size (%d)" % (input_unit, self.output_size))
 
-            output, new_h = self._cell(x, h_prev)
+            output, new_h = self.__cell(x, h_prev)
             output = output + tf.identity(x)
             
             return output, new_h
