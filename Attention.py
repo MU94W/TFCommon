@@ -150,7 +150,7 @@ class LocationAttentionModule(object):
             tmp_rho = tf.expand_dims(rho, -1)
             tmp_beta = tf.expand_dims(beta, -1)
             tmp_K = tf.expand_dims(K, -1)
-            L_arr = tf.reshape(tf.range(0, self.enc_length, dtype=tf.float32), shape=(1, 1, self.enc_length))
+            L_arr = tf.reshape(tf.cast(tf.range(0, self.enc_length), tf.float32), shape=(1, 1, self.enc_length))
 
             phi = tmp_rho * tf.exp(- tmp_beta * tf.square(tmp_K - L_arr))
 
