@@ -114,3 +114,53 @@ class LuongAttentionModule(object):
 
             return context, alpha
 
+class LocationAttentionModule(object):
+    """Attention Module
+    Args:
+        attention_units:    The attention module's capacity (should be proportional to query_units)
+        memory:             A tensor, whose shape should be (None, Time, Unit)
+        time_major:
+    """
+    def __init__(self, attention_units, memory, sequence_length=None, time_major=True):
+        self.attention_units    = attention_units
+        self.enc_units          = memory.get_shape()[-1].value
+
+        if time_major:
+            memory = tf.transpose(memory, perm=(1,0,2))
+
+        self.enc_length = tf.shape(memory)[1]
+        self.batch_size = tf.shape(memory)[0]
+        self.mask = array_ops.sequence_mask(sequence_length, self.enc_length, tf.float32) if sequence_length is not None else None
+
+        self.memory = tf.reshape(memory, (tf.shape(memory)[0], self.enc_length, self.enc_units))
+    
+    def __call__(self, query, last_K):
+
+        with tf.variable_scope('attention'):
+            ### 1st.
+            rho_slash = tf.layers.dense(query, self.attention_units, activation=None)
+            beta_slash = tf.layers.dense(query, self.attention_units, activation=None)
+            K_slash = tf.layers.dense(query, self.attention_units, activation=None)
+
+            rho = tf.exp(rho_slash)
+            beta = tf.exp(beta_slash)
+            K = last_K + tf.exp(K_slash)
+
+            ### 2nd.
+            tmp_rho = tf.expand_dims(rho, -1)
+            tmp_beta = tf.expand_dims(beta, -1)
+            tmp_K = tf.expand_dims(K, -1)
+            L_arr = tf.reshape(tf.range(0, self.enc_length, dtype=tf.float32), shape=(1, 1, self.enc_length))
+
+            phi = tmp_rho * tf.exp(- tmp_beta * tf.square(tmp_K - L_arr))
+
+            ### 3rd. compute the score
+            alpha = tf.reduce_sum(phi, 1)
+            if self.mask is not None:
+                alpha = alpha * self.mask
+
+            ### 4th. get the weighted context from memory (element-wise mul then reduce)
+            context = tf.expand_dims(alpha, -1) * self.memory
+            context = tf.reduce_sum(context, axis=1)
+
+            return context, alpha, K
