@@ -1,7 +1,7 @@
 import tensorflow as tf
-from tensorflow.python.ops import array_ops
 from TFCommon.Initializer import gaussian_initializer, random_orthogonal_initializer
-from six.moves import xrange
+from tensorflow.python.ops import array_ops
+
 
 class BahdanauAttentionModule(object):
     """Attention Module
@@ -23,7 +23,8 @@ class BahdanauAttentionModule(object):
         self.mask = array_ops.sequence_mask(sequence_length, self.enc_length, tf.float32) if sequence_length is not None else None
 
         self.memory = tf.reshape(memory, (tf.shape(memory)[0], self.enc_length, 1, self.enc_units))
-        ### pre-compute Uahj to minimize the computational cost
+
+        # pre-compute Uahj to minimize the computational cost
         with tf.variable_scope('attention'):
             Ua = tf.get_variable(name='Ua', shape=(1, 1, self.enc_units, self.attention_units))
         self.hidden_feats = tf.nn.conv2d(self.memory, Ua, [1,1,1,1], "SAME")
@@ -133,7 +134,7 @@ class LocationAttentionModule(object):
         self.mask = array_ops.sequence_mask(sequence_length, self.enc_length, tf.float32) if sequence_length is not None else None
 
         self.memory = tf.reshape(memory, (tf.shape(memory)[0], self.enc_length, self.enc_units))
-    
+
     def __call__(self, query, last_K):
 
         with tf.variable_scope('attention'):
