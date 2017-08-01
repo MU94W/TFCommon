@@ -1,6 +1,7 @@
 import tensorflow as tf
 from TFCommon.Initializer import gaussian_initializer, random_orthogonal_initializer
 from tensorflow.python.ops import array_ops
+import math
 
 
 class BahdanauAttentionModule(object):
