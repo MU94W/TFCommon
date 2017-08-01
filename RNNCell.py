@@ -1,5 +1,6 @@
 import tensorflow as tf, numpy as np
 from tensorflow.python.util import nest
+from tensorflow.python.ops import array_ops
 if float(tf.__version__[:3]) >= 1.2:
     from tensorflow.python.ops.rnn_cell_impl import RNNCell
 else:
@@ -74,6 +75,72 @@ class GRUCell(RNNCell):
             ### calculate r and z
             r = self.__gate_activation(tf.matmul(x, Wr) + tf.matmul(h_prev, Ur) + br)
             z = self.__gate_activation(tf.matmul(x, Wz) + tf.matmul(h_prev, Uz) + bz)
+
+            ### calculate candidate
+            h_slash = tf.tanh(tf.matmul(x, Wh) + tf.matmul(r * h_prev, Uh) + bh)
+
+            ### final cal
+            new_h = (1-z) * h_prev + z * h_slash
+
+            return new_h, tuple([new_h])
+
+class FastGRUCell(RNNCell):
+    def __init__(self, num_units, init_state=None, gate_activation="sigmoid", reuse=None):
+        self.__num_units = num_units
+        if gate_activation == "sigmoid":
+            self.__gate_activation = tf.sigmoid
+        elif gate_activation == "hard_sigmoid":
+            self.__gate_activation = activations.hard_sigmoid
+        else:
+            raise ValueError
+        self.__init_state = init_state
+        self.__reuse = reuse
+
+    @property
+    def state_size(self):
+        return self.__num_units
+
+    @property
+    def output_size(self):
+        return self.__num_units
+
+    def zero_state(self, batch_size, dtype):
+        return tuple([super(FastGRUCell, self).zero_state(batch_size, dtype)])
+
+    def init_state(self, batch_size, dtype):
+        if self.__init_state is not None:
+            return tuple([self.__init_state])
+        else:
+            return self.zero_state(batch_size, dtype)
+
+    def __call__(self, x, h_prev, scope=None):
+        with tf.variable_scope(scope or type(self).__name__):
+
+            h_prev = h_prev[0]
+
+            # Check if the input size exist.
+            input_size = x.shape.with_rank(2)[1].value
+            if input_size is None:
+                raise ValueError("Expecting input_size to be set.")
+
+            ### get weights.
+            W_shape = (input_size, self.output_size)
+            U_shape = (self.output_size, self.output_size)
+            b_shape = (self.output_size,)
+            Wrz = tf.get_variable(name="Wrz", shape=(input_size, 2 * self.output_size))
+            Wh = tf.get_variable(name='Wh', shape=W_shape)
+            Urz = tf.get_variable(name="Urz", shape=(self.output_size, 2 * self.output_size),
+                                  initializer=random_orthogonal_initializer())
+            Uh = tf.get_variable(name='Uh', shape=U_shape,
+                                 initializer=random_orthogonal_initializer())
+            brz = tf.get_variable(name="brz", shape=(2 * self.output_size),
+                                  initializer=tf.constant_initializer(0.0))
+            bh = tf.get_variable(name='bh', shape=b_shape,
+                                 initializer=tf.constant_initializer(0.0))
+
+            ### calculate r and z
+            rz = self.__gate_activation(tf.matmul(x, Wrz) + tf.matmul(h_prev, Urz) + brz)
+            r, z = array_ops.split(rz, num_or_size_splits=2, axis=1)
 
             ### calculate candidate
             h_slash = tf.tanh(tf.matmul(x, Wh) + tf.matmul(r * h_prev, Uh) + bh)
