@@ -58,7 +58,7 @@ class BaseFeeder(threading.Thread):
 
     def prepare_batch(self):
         if not self.split_bool:
-            self.feed_single_batch(self.fetch_one_batch())
+            self.feed_single_batch(self.pre_process_batch(self.fetch_one_batch()))
         else:
             many_records = [self.fetch_one_record() for _ in xrange(self.batch_size * self.split_nums)]
             for batch in self.split_strategy(many_records):
@@ -67,7 +67,7 @@ class BaseFeeder(threading.Thread):
     def prepare_validation(self):
         if not self.split_bool:
             while self._record_index <= (self._total_samples - self.batch_size):
-                self.feed_single_batch(self.fetch_one_batch())
+                self.feed_single_batch(self.pre_process_batch(self.fetch_one_batch()))
             remain_batch = []
             while self._record_index != 0:
                 remain_batch.append(self.fetch_one_record())
