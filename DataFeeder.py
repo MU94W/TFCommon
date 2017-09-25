@@ -10,7 +10,7 @@ class BaseFeeder(threading.Thread):
         pre_process_batch,
         split_strategy (if split_nums is not None) methods.
     """
-    def __init__(self, coordinator, session, placeholders, key_lst, batch_size=32, split_nums=None, is_validation=False):
+    def __init__(self, coordinator, session, placeholders, meta, batch_size=32, split_nums=None, is_validation=False):
         """
         :param coordinator:
         :param placeholders:
@@ -26,6 +26,8 @@ class BaseFeeder(threading.Thread):
             self.fed_holders[idx].set_shape(placeholders[idx].shape)
         self._placeholders = placeholders
         self.sess = session
+        self.meta = meta
+        key_lst = meta.get('key_lst')
         assert isinstance(key_lst, list) or isinstance(key_lst, tuple)
         self.key_lst = key_lst
         self.batch_size = batch_size
