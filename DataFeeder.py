@@ -55,8 +55,10 @@ class BaseFeeder(threading.Thread):
                 self.prepare_batch()
         except Exception as e:
             # Report exceptions to the coordinator.
+            print('Data feeder thread failed.')
             self.coord.request_stop(e)
         finally:
             # Terminate as usual. It is safe to call `coord.request_stop()` twice.
+            print('Data feeder done.')
             self.coord.request_stop()
 
