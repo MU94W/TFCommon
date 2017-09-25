@@ -40,8 +40,8 @@ class EmbeddingLayer(object):
                 sqrt3 = math.sqrt(3)    # Uniform(-sqrt(3), sqrt(3)) has variance=1.
                 initializer = tf.random_uniform_initializer(-sqrt3, sqrt3)
 
-            embedding = tf.get_variable(name="embedding", shape=(self.classes, self.size), \
-                    initializer=initializer, dtype=self.dtype)
+            embedding = tf.get_variable(name="embedding", shape=(self.classes, self.size),
+                                        initializer=initializer, dtype=self.dtype)
             embedded = tf.nn.embedding_lookup(embedding, input_ts)
         return embedded
 
