@@ -6,7 +6,7 @@ setup(
     packages=[''],
     url='',
     license='',
-    author='tpog',
+    author='Alex M. Wang',
     author_email='nanqiao15@126.com',
-    description='Common modules for tensorflow developer'
+    description='Common modules for tensorflow developer', requires=['six', 'tensorflow']
 )
