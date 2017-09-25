@@ -51,7 +51,7 @@ class BaseFeeder(threading.Thread):
 
     def run(self):
         try:
-            while not self.coord.should_stop:
+            while not self.coord.should_stop():
                 self.prepare_batch()
         except Exception as e:
             # Report exceptions to the coordinator.
