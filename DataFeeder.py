@@ -22,6 +22,7 @@ class BaseFeeder(threading.Thread):
         :param placeholders:
         :param batch_size:
         """
+        super(BaseFeeder, self).__init__()
         self.coord = coordinator
         self.queue = tf.FIFOQueue(capacity=int(batch_size/4), dtypes=[item.dtype for item in placeholders])
         self.enqueue_op = self.queue.enqueue(placeholders)
