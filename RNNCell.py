@@ -32,7 +32,7 @@ class RawGRUCell(RNNCell):
         return self.__num_units
 
     def zero_state(self, batch_size, dtype):
-        return tuple([super(GRUCell, self).zero_state(batch_size, dtype)])
+        return tuple([super(RawGRUCell, self).zero_state(batch_size, dtype)])
 
     def init_state(self, batch_size, dtype):
         if self.__init_state is not None:
@@ -103,7 +103,7 @@ class GRUCell(RNNCell):
         return self.__num_units
 
     def zero_state(self, batch_size, dtype):
-        return tuple([super(FastGRUCell, self).zero_state(batch_size, dtype)])
+        return tuple([super(GRUCell, self).zero_state(batch_size, dtype)])
 
     def init_state(self, batch_size, dtype):
         if self.__init_state is not None:
