@@ -24,10 +24,12 @@ class BaseFeeder(threading.Thread):
         """
         super(BaseFeeder, self).__init__()
         self.coord = coordinator
-        self.queue = tf.FIFOQueue(capacity=int(batch_size/4), dtypes=[item.dtype for item in placeholders])
-        self.enqueue_op = self.queue.enqueue(placeholders)
-        deq = self.queue.dequeue()
-        self.fed_holders = deq.set_shape(placeholders[0].shape)
+        queue = tf.FIFOQueue(capacity=int(batch_size/4), dtypes=[item.dtype for item in placeholders])
+        self.enqueue_op = queue.enqueue(placeholders)
+        deq = queue.dequeue()
+        self.fed_holders = [item for item in deq]
+        for idx in range(len(placeholders)):
+            self.fed_holders[idx].set_shape(placeholders[idx].shape)
         self.placeholders = placeholders
         self.sess = session
 
