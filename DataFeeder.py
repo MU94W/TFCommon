@@ -27,7 +27,7 @@ class BaseFeeder(threading.Thread):
         queue = tf.FIFOQueue(capacity=int(batch_size/4), dtypes=[item.dtype for item in placeholders])
         self.enqueue_op = queue.enqueue(placeholders)
         deq = queue.dequeue()
-        self.fed_holders = [item for item in deq]
+        self.fed_holders = [deq[idx] for idx in len(placeholders)]
         for idx in range(len(placeholders)):
             self.fed_holders[idx].set_shape(placeholders[idx].shape)
         self.placeholders = placeholders
