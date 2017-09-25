@@ -15,7 +15,7 @@ def build_feeder(prepare_batch_func, coordinator, placeholders, batch_size=32):
     return base_feeder
 
 class BaseFeeder(threading.Thread):
-    def __init__(self, coordinator, placeholders, batch_size=32):
+    def __init__(self, coordinator, placeholders, session, batch_size=32):
         """
 
         :param coordinator:
@@ -26,9 +26,23 @@ class BaseFeeder(threading.Thread):
         self.queue = tf.FIFOQueue(capacity=int(batch_size/4), dtypes=[item.dtype for item in placeholders])
         self.enqueue_op = self.queue.enqueue(placeholders)
         self.fed_holders = [deq.set_shape(ph.get_shape()) for deq, ph in zip(self.queue.dequeue(), placeholders)]
+        self.placeholders = placeholders
+        self.sess = session
 
     def prepare_batch(self):
+        """
+        You should call self.feed_single_batch in the implementation.
+        :return:
+        """
         pass
+
+    def feed_single_batch(self, single_batch):
+        """
+        Will be blocked, if the queue is full.
+        :param single_batch:
+        :return:
+        """
+        self.sess.run(self.enqueue_op, feed_dict=dict(zip(self.placeholders, single_batch)))
 
     def run(self):
         try:
