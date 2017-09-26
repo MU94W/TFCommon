@@ -10,14 +10,17 @@ class BaseFeeder(threading.Thread):
         pre_process_batch,
         split_strategy (if split_nums is not None) methods.
     """
-    def __init__(self, coordinator, session, placeholders, meta, batch_size=32, split_nums=None, is_validation=False):
+    def __init__(self, session, placeholders, meta, batch_size=32, split_nums=None, is_validation=False):
         """
-        :param coordinator:
+
+        :param session:
         :param placeholders:
+        :param meta:
         :param batch_size:
+        :param split_nums:
+        :param is_validation:
         """
         super(BaseFeeder, self).__init__()
-        self.coord = coordinator
         queue = tf.FIFOQueue(capacity=int(batch_size/4), dtypes=[item.dtype for item in placeholders])
         self.enqueue_op = queue.enqueue(placeholders)
         self.fed_holders = [None] * len(placeholders)   # None placeholder for dequeue
@@ -36,6 +39,7 @@ class BaseFeeder(threading.Thread):
         assert isinstance(is_validation, bool)
         self.is_validation = is_validation
         self._total_samples = len(key_lst)
+        self._iter = 0
         self._record_index = 0
         self._loss = 0.
 
@@ -99,16 +103,12 @@ class BaseFeeder(threading.Thread):
 
     def run(self):
         try:
-            while not self.coord.should_stop():
+            while True:
                 if not self.is_validation:
                     self.prepare_batch()
                 else:
                     self.prepare_validation()
         except Exception as e:
-            # Report exceptions to the coordinator.
             print('Data feeder thread failed.')
-            self.coord.request_stop(e)
         finally:
-            # Terminate as usual. It is safe to call `coord.request_stop()` twice.
             print('Data feeder done.')
-            self.coord.request_stop()
