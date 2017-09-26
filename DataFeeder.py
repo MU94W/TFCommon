@@ -87,7 +87,7 @@ class BaseFeeder(threading.Thread):
         try:
             pre_processed = self.pre_process_batch(records)
         except Exception as e:
-            print('[E] read_by_key failed')
+            print('[E] pre_processed failed')
             pre_processed = []
         return pre_processed
 
