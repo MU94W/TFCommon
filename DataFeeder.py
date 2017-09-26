@@ -10,12 +10,11 @@ class BaseFeeder(threading.Thread):
         pre_process_batch,
         split_strategy (if split_nums is not None) methods.
     """
-    def __init__(self, coordinator, session, placeholders, meta, batch_size=32, split_nums=None, is_validation=False):
+    def __init__(self, coordinator, placeholders, meta, batch_size=32, split_nums=None, is_validation=False):
         """
         
         :param coordinator: 
-        :param session: 
-        :param placeholders: 
+        :param placeholders:
         :param meta: 
         :param batch_size: 
         :param split_nums: 
@@ -31,7 +30,7 @@ class BaseFeeder(threading.Thread):
             self.fed_holders[idx].set_shape(placeholders[idx].shape)
         self._placeholders = placeholders
         self.coord = coordinator
-        self.sess = session
+        self.sess = None
         self.meta = meta
         key_lst = meta.get('key_lst')
         assert isinstance(key_lst, list) or isinstance(key_lst, tuple)
@@ -116,6 +115,10 @@ class BaseFeeder(threading.Thread):
             print('[E] read_by_key failed')
             record = []
         return record
+
+    def start_in_session(self, session):
+        self.sess = session
+        self.start()
 
     def run(self):
         try:
