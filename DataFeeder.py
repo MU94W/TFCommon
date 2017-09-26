@@ -63,7 +63,7 @@ class BaseFeeder(threading.Thread):
 
     def prepare_batch(self):
         if not self.split_bool:
-            self.feed_single_batch(self.pre_process_batch(self.fetch_one_batch()))
+            self.feed_single_batch(self.fetch_one_batch())
         else:
             many_records = [self.fetch_one_record() for _ in xrange(self.batch_size * self.split_nums)]
             for batch in self.split_strategy(many_records):
@@ -72,7 +72,7 @@ class BaseFeeder(threading.Thread):
     def prepare_validation(self):
         if not self.split_bool:
             while self._record_index <= (self._total_samples - self.batch_size):
-                self.feed_single_batch(self.pre_process_batch(self.fetch_one_batch()))
+                self.feed_single_batch(self.fetch_one_batch())
             remain_batch = []
             while self._record_index != 0:
                 remain_batch.append(self.fetch_one_record())
@@ -84,7 +84,12 @@ class BaseFeeder(threading.Thread):
 
     def fetch_one_batch(self):
         records = [self.fetch_one_record() for _ in xrange(self.batch_size)]
-        return self.pre_process_batch(records)
+        try:
+            pre_processed = self.pre_process_batch(records)
+        except Exception as e:
+            print('[E] read_by_key failed')
+            pre_processed = []
+        return pre_processed
 
     def feed_single_batch(self, single_batch):
         """
@@ -93,14 +98,22 @@ class BaseFeeder(threading.Thread):
         :param single_batch:
         :return:
         """
-        self.sess.run(self.enqueue_op, feed_dict=dict(zip(self._placeholders, single_batch)))
+        try:
+            self.sess.run(self.enqueue_op, feed_dict=dict(zip(self._placeholders, single_batch)))
+        except Exception as e:
+            print('[E] feed_single_batch failed')
 
     def fetch_one_record(self):
         if self._record_index >= self._total_samples:
             random.shuffle(self.key_lst)
             self._record_index = 0
         self._record_index += 1
-        return self.read_by_key(self.key_lst[self._record_index-1])
+        try:
+            record = self.read_by_key(self.key_lst[self._record_index-1])
+        except Exception as e:
+            print('[E] read_by_key failed')
+            record = []
+        return record
 
     def run(self):
         try:
