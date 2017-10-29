@@ -1,4 +1,4 @@
-import threading, tensorflow as tf, random, collections
+import threading, tensorflow as tf, random, collections, math
 from six.moves import xrange
 
 class BaseFeeder(threading.Thread):
@@ -21,7 +21,7 @@ class BaseFeeder(threading.Thread):
         :param is_validation: 
         """
         super(BaseFeeder, self).__init__()
-        queue = tf.FIFOQueue(capacity=int(batch_size/4), dtypes=[item.dtype for item in placeholders])
+        queue = tf.FIFOQueue(capacity=math.ceil(batch_size/4), dtypes=[item.dtype for item in placeholders])
         self.queue = queue  # for buf inspect
         self.enqueue_op = queue.enqueue(placeholders)
         self.fed_holders = [None] * len(placeholders)   # None placeholder for dequeue
