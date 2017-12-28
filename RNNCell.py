@@ -1,12 +1,10 @@
 import tensorflow as tf
 from tensorflow.python.ops import array_ops
-if float(tf.__version__[:3]) >= 1.2:
-    from tensorflow.python.ops.rnn_cell_impl import RNNCell
-else:
-    from tensorflow.python.ops.rnn_cell_impl import _RNNCell as RNNCell
-from tensorflow.contrib.rnn import LSTMStateTuple
 from tensorflow.contrib.keras import activations
-import TFCommon.Initializer
+try:
+    from tensorflow.python.ops.rnn_cell_impl import RNNCell
+except ImportError:
+    from tensorflow.python.ops.rnn_cell_impl import _RNNCell as RNNCell
 
 
 class RawGRUCell(RNNCell):
@@ -42,7 +40,6 @@ class RawGRUCell(RNNCell):
 
     def __call__(self, x, h_prev, scope=None):
         with tf.variable_scope(scope or type(self).__name__):
-
             h_prev = h_prev[0]
 
             # Check if the input size exist.
@@ -58,11 +55,11 @@ class RawGRUCell(RNNCell):
             Wr = tf.get_variable(name='Wr', shape=W_shape)
             Wh = tf.get_variable(name='Wh', shape=W_shape)
             Uz = tf.get_variable(name='Uz', shape=U_shape,
-                                 initializer=TFCommon.Initializer.random_orthogonal_initializer())
+                                 initializer=tf.orthogonal_initializer())
             Ur = tf.get_variable(name='Ur', shape=U_shape,
-                                 initializer=TFCommon.Initializer.random_orthogonal_initializer())
+                                 initializer=tf.orthogonal_initializer())
             Uh = tf.get_variable(name='Uh', shape=U_shape,
-                                 initializer=TFCommon.Initializer.random_orthogonal_initializer())
+                                 initializer=tf.orthogonal_initializer())
             bz = tf.get_variable(name='bz', shape=b_shape,
                                  initializer=tf.constant_initializer(0.0))
             br = tf.get_variable(name='br', shape=b_shape,
@@ -78,9 +75,10 @@ class RawGRUCell(RNNCell):
             h_slash = tf.tanh(tf.matmul(x, Wh) + tf.matmul(r * h_prev, Uh) + bh)
 
             ### final cal
-            new_h = (1-z) * h_prev + z * h_slash
+            new_h = (1 - z) * h_prev + z * h_slash
 
             return new_h, tuple([new_h])
+
 
 class GRUCell(RNNCell):
     def __init__(self, num_units, init_state=None, gate_activation="sigmoid", reuse=None):
@@ -113,7 +111,6 @@ class GRUCell(RNNCell):
 
     def __call__(self, x, h_prev, scope=None):
         with tf.variable_scope(scope or type(self).__name__):
-
             h_prev = h_prev[0]
 
             # Check if the input size exist.
@@ -128,9 +125,9 @@ class GRUCell(RNNCell):
             Wrz = tf.get_variable(name="Wrz", shape=(input_size, 2 * self.output_size))
             Wh = tf.get_variable(name='Wh', shape=W_shape)
             Urz = tf.get_variable(name="Urz", shape=(self.output_size, 2 * self.output_size),
-                                  initializer=TFCommon.Initializer.random_orthogonal_initializer())
+                                  initializer=tf.orthogonal_initializer())
             Uh = tf.get_variable(name='Uh', shape=U_shape,
-                                 initializer=TFCommon.Initializer.random_orthogonal_initializer())
+                                 initializer=tf.orthogonal_initializer())
             brz = tf.get_variable(name="brz", shape=(2 * self.output_size),
                                   initializer=tf.constant_initializer(0.0))
             bh = tf.get_variable(name='bh', shape=b_shape,
@@ -144,9 +141,10 @@ class GRUCell(RNNCell):
             h_slash = tf.tanh(tf.matmul(x, Wh) + tf.matmul(r * h_prev, Uh) + bh)
 
             ### final cal
-            new_h = (1-z) * h_prev + z * h_slash
+            new_h = (1 - z) * h_prev + z * h_slash
 
             return new_h, tuple([new_h])
+
 
 class RawLSTMCell(RNNCell):
     """Long Short-Term Memory (LSTM) unit recurrent network cell."""
@@ -164,7 +162,7 @@ class RawLSTMCell(RNNCell):
 
     @property
     def state_size(self):
-        return LSTMStateTuple(self.output_size, self.output_size)
+        return tuple([self.output_size, self.output_size])
 
     @property
     def output_size(self):
@@ -172,7 +170,6 @@ class RawLSTMCell(RNNCell):
 
     def __call__(self, x, state_prev, scope=None):
         with tf.variable_scope(scope or type(self).__name__):
-
             h_prev, c_prev = state_prev
 
             # Check if the input size exist.
@@ -180,7 +177,7 @@ class RawLSTMCell(RNNCell):
             if input_size is None:
                 raise ValueError("Expecting input_size to be set.")
 
-            ### get weights for concated tensor.
+            # get weights for concated tensor.
             W_shape = (input_size, self.output_size)
             U_shape = (self.output_size, self.output_size)
             b_shape = (self.output_size,)
@@ -189,35 +186,36 @@ class RawLSTMCell(RNNCell):
             Wf = tf.get_variable(name='Wf', shape=W_shape)
             Wo = tf.get_variable(name='Wo', shape=W_shape)
             Ui = tf.get_variable(name='Ui', shape=U_shape,
-                                 initializer=TFCommon.Initializer.random_orthogonal_initializer())
+                                 initializer=tf.orthogonal_initializer())
             Uj = tf.get_variable(name='Uj', shape=U_shape,
-                                 initializer=TFCommon.Initializer.random_orthogonal_initializer())
+                                 initializer=tf.orthogonal_initializer())
             Uf = tf.get_variable(name='Uf', shape=U_shape,
-                                 initializer=TFCommon.Initializer.random_orthogonal_initializer())
+                                 initializer=tf.orthogonal_initializer())
             Uo = tf.get_variable(name='Uo', shape=U_shape,
-                                 initializer=TFCommon.Initializer.random_orthogonal_initializer())
+                                 initializer=tf.orthogonal_initializer())
             bi = tf.get_variable(name='bi', shape=b_shape,
                                  initializer=tf.constant_initializer(0.0))
             bj = tf.get_variable(name='bj', shape=b_shape,
                                  initializer=tf.constant_initializer(0.0))
             bf = tf.get_variable(name='bf', shape=b_shape,
-                                 initializer=tf.constant_initializer(self.__forget_bias)) # forget gate bias := 1
+                                 initializer=tf.constant_initializer(self.__forget_bias))  # forget gate bias := 1
             bo = tf.get_variable(name='bo', shape=b_shape,
                                  initializer=tf.constant_initializer(0.0))
 
-            ### calculate gates and input's info
+            # calculate gates and input's info
             i = tf.tanh(tf.matmul(x, Wi) + tf.matmul(h_prev, Ui) + bi)
             j = self.__gate_activation(tf.matmul(x, Wj) + tf.matmul(h_prev, Uj) + bj)
             f = self.__gate_activation(tf.matmul(x, Wf) + tf.matmul(h_prev, Uf) + bf)
             o = tf.tanh(tf.matmul(x, Wo) + tf.matmul(h_prev, Uo) + bo)
 
-            ### calculate candidate
+            # calculate candidate
             new_c = f * c_prev + i * j
 
-            ### final cal
+            # final cal
             new_h = o * tf.tanh(new_c)
 
-            return new_h, LSTMStateTuple(new_h, new_c)
+            return new_h, tuple([new_h, new_c])
+
 
 class AttentionWrapper(RNNCell):
     def __init__(self, cell, attention_module, reuse=None):
@@ -242,8 +240,9 @@ class AttentionWrapper(RNNCell):
                 h_prev_concated = tf.concat(h_prev, axis=-1)
             context, alpha = self._attention_module(h_prev_concated)
             output, new_h = self._cell(x, h_prev, context)
-            
+
             return output, new_h, alpha, context
+
 
 class AttentionWithoutIndicWrapper(AttentionWrapper):
     def __call__(self, x, h_prev, scope=None):
@@ -252,7 +251,5 @@ class AttentionWithoutIndicWrapper(AttentionWrapper):
                 h_prev_concated = tf.concat(h_prev, axis=-1)
             context, alpha = self._attention_module(h_prev_concated)
             output, new_h = self._cell(context, h_prev)
-            
+
             return output, new_h, alpha, context
-
-
