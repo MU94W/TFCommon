@@ -217,6 +217,61 @@ class RawLSTMCell(RNNCell):
             return new_h, tuple([new_h, new_c])
 
 
+class LSTMCell(RNNCell):
+    """Long Short-Term Memory (LSTM) unit recurrent network cell."""
+
+    def __init__(self, num_units, gate_activation="sigmoid", forget_bias=1.0, reuse=None):
+        self.__num_units = num_units
+        if gate_activation == "sigmoid":
+            self.__gate_activation = tf.sigmoid
+        elif gate_activation == "hard_sigmoid":
+            self.__gate_activation = activations.hard_sigmoid
+        else:
+            raise ValueError
+        self.__forget_bias = forget_bias
+        self.__reuse = reuse
+
+    @property
+    def state_size(self):
+        return tuple([self.output_size, self.output_size])
+
+    @property
+    def output_size(self):
+        return self.__num_units
+
+    def __call__(self, x, state_prev, scope=None):
+        with tf.variable_scope(scope or type(self).__name__):
+            h_prev, c_prev = state_prev
+
+            # Check if the input size exist.
+            input_size = x.shape.with_rank(2)[1].value
+            if input_size is None:
+                raise ValueError("Expecting input_size to be set.")
+
+            # get weights for concatenated tensor.
+            mat_w = tf.get_variable(name='input_kernel', shape=(input_size, self.output_size*4))
+            mat_u = tf.get_variable(name='recurrent_kernel', shape=(self.output_size, self.output_size*4),
+                                    initializer=tf.orthogonal_initializer())
+            b = tf.get_variable(name='bias', shape=(self.output_size*4),
+                                initializer=tf.constant_initializer(0.0))
+
+            # calculate gates and input's info.
+            i_o_j_f = tf.matmul(x, mat_w) + tf.matmul(h_prev, mat_u) + b
+            i, o, j, f = array_ops.split(i_o_j_f, 4, axis=-1)
+
+            # activate them!
+            i, o = tf.tanh(i), tf.tanh(o)
+            j, f = self.__gate_activation(j), self.__gate_activation(f + self.__forget_bias)
+
+            # calculate candidate.
+            new_c = f * c_prev + j * i
+
+            # final cal.
+            new_h = o * tf.tanh(new_c)
+
+            return new_h, tuple([new_h, new_c])
+
+
 class AttentionWrapper(RNNCell):
     def __init__(self, cell, attention_module, reuse=None):
         self._cell = cell
