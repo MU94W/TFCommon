@@ -17,7 +17,8 @@ class RawGRUCell(RNNCell):
         elif gate_activation == "hard_sigmoid":
             self.__gate_activation = activations.hard_sigmoid
         else:
-            raise ValueError
+            raise ValueError("{} is invalid as a gate activation function!\n"
+                             "Please use \"sigmoid\" or \"hard_sigmoid\" instead.".format(gate_activation))
         self.__init_state = init_state
         self.__reuse = reuse
 
@@ -47,7 +48,7 @@ class RawGRUCell(RNNCell):
             if input_size is None:
                 raise ValueError("Expecting input_size to be set.")
 
-            ### get weights.
+            # get weights.
             W_shape = (input_size, self.output_size)
             U_shape = (self.output_size, self.output_size)
             b_shape = (self.output_size,)
@@ -67,14 +68,14 @@ class RawGRUCell(RNNCell):
             bh = tf.get_variable(name='bh', shape=b_shape,
                                  initializer=tf.constant_initializer(0.0))
 
-            ### calculate r and z
+            # calculate r and z
             r = self.__gate_activation(tf.matmul(x, Wr) + tf.matmul(h_prev, Ur) + br)
             z = self.__gate_activation(tf.matmul(x, Wz) + tf.matmul(h_prev, Uz) + bz)
 
-            ### calculate candidate
+            # calculate candidate
             h_slash = tf.tanh(tf.matmul(x, Wh) + tf.matmul(r * h_prev, Uh) + bh)
 
-            ### final cal
+            # final cal
             new_h = (1 - z) * h_prev + z * h_slash
 
             return new_h, tuple([new_h])
@@ -88,7 +89,8 @@ class GRUCell(RNNCell):
         elif gate_activation == "hard_sigmoid":
             self.__gate_activation = activations.hard_sigmoid
         else:
-            raise ValueError
+            raise ValueError("{} is invalid as a gate activation function!\n"
+                             "Please use \"sigmoid\" or \"hard_sigmoid\" instead.".format(gate_activation))
         self.__init_state = init_state
         self.__reuse = reuse
 
@@ -118,7 +120,7 @@ class GRUCell(RNNCell):
             if input_size is None:
                 raise ValueError("Expecting input_size to be set.")
 
-            ### get weights.
+            # get weights.
             W_shape = (input_size, self.output_size)
             U_shape = (self.output_size, self.output_size)
             b_shape = (self.output_size,)
@@ -133,14 +135,14 @@ class GRUCell(RNNCell):
             bh = tf.get_variable(name='bh', shape=b_shape,
                                  initializer=tf.constant_initializer(0.0))
 
-            ### calculate r and z
+            # calculate r and z
             rz = self.__gate_activation(tf.matmul(x, Wrz) + tf.matmul(h_prev, Urz) + brz)
             r, z = array_ops.split(rz, num_or_size_splits=2, axis=1)
 
-            ### calculate candidate
+            # calculate candidate
             h_slash = tf.tanh(tf.matmul(x, Wh) + tf.matmul(r * h_prev, Uh) + bh)
 
-            ### final cal
+            # final cal
             new_h = (1 - z) * h_prev + z * h_slash
 
             return new_h, tuple([new_h])
@@ -156,7 +158,8 @@ class RawLSTMCell(RNNCell):
         elif gate_activation == "hard_sigmoid":
             self.__gate_activation = activations.hard_sigmoid
         else:
-            raise ValueError
+            raise ValueError("{} is invalid as a gate activation function!\n"
+                             "Please use \"sigmoid\" or \"hard_sigmoid\" instead.".format(gate_activation))
         self.__forget_bias = forget_bias
         self.__reuse = reuse
 
@@ -227,7 +230,8 @@ class LSTMCell(RNNCell):
         elif gate_activation == "hard_sigmoid":
             self.__gate_activation = activations.hard_sigmoid
         else:
-            raise ValueError
+            raise ValueError("{} is invalid as a gate activation function!\n"
+                             "Please use \"sigmoid\" or \"hard_sigmoid\" instead.".format(gate_activation))
         self.__forget_bias = forget_bias
         self.__reuse = reuse
 
